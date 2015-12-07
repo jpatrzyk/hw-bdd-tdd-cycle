@@ -7,8 +7,8 @@ describe Movie do
   end
   
   it "finds similar movies by director" do
-    movie1 = FactoryGirl.create(:movie)
-    movie2 = FactoryGirl.create(:movie, title: "Other title")
+    movie1 = Movie.create(title: "Asd", director: "John Smith")
+    movie2 = Movie.create(title: "Other title", director: "John Smith")
     expect(movie1.find_similar).to match_array([movie1, movie2])
   end
 end

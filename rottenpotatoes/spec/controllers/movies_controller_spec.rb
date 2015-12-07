@@ -3,34 +3,63 @@ require "rails_helper"
 describe MoviesController do
   
   before(:each) do
-    @movie = FactoryGirl.create(:movie)
+    @movie = double("movie", :id => 123, :title => "The Godfather", :director => "Francis Ford Coppola", :rating => "R")
   end
   
   context "GET_similar_movies" do
     it "calls the model to find all movies with the same director" do
-      expect_any_instance_of(Movie).to receive(:find_similar)
+      Movie.stub(:find).with(@movie.id.to_s).and_return(@movie)
+      expect(@movie).to receive(:find_similar)
       get :similar, :id => @movie.id
     end
     
     it "passes movie to view" do
+      Movie.stub(:find).with(@movie.id.to_s).and_return(@movie)
+      @movie.stub(:find_similar)
       get :similar, :id => @movie.id
       expect(assigns(:movie)).to eq(@movie)
     end
     
     it "passes similar movies to view" do
+      Movie.stub(:find).with(@movie.id.to_s).and_return(@movie)
+      @movie.stub(:find_similar).and_return([@movie])
       get :similar, :id => @movie.id
-      expect(assigns(:movies)).not_to be_empty
+      expect(assigns(:movies)).to match_array([@movie])
     end
     
     it "redirects to home page if the movie has no director specified" do
-      movie1 = FactoryGirl.create(:movie, director: nil)
-      get :similar, :id => movie1.id
+      @movie.stub(:director).and_return(nil)
+      Movie.stub(:find).with(@movie.id.to_s).and_return(@movie)
+      get :similar, :id => @movie.id
       expect(response).to redirect_to(movies_path)
+    end
+  end
+  
+  context "GET_movie" do
+    it "assigns movie for view" do
+      Movie.stub(:find).with(@movie.id.to_s).and_return(@movie)
+      get :show, :id => @movie.id
+      expect(assigns(:movie)).to eq(@movie)
+    end
+  end
+  
+  context "GET_edit_movie" do
+    it "calls Movie.find with proper id" do
+      expect(Movie).to receive(:find).with(@movie.id.to_s)
+      get :edit, :id => @movie.id
     end
   end
   
   context "PUT_(update)_movie" do
     it "redirects to Movie Details page" do
+      Movie.stub(:find).with(@movie.id.to_s).and_return(@movie)
+      expect(@movie).to receive(:update_attributes!).with({"director"=>"New Director"})
+      put :update, :id => @movie.id, :movie => { :director => "New Director" }
+    end
+    
+    it "redirects to Movie Details page" do
+      Movie.stub(:find).with(@movie.id.to_s).and_return(@movie)
+      @movie.stub(:update_attributes!)
       put :update, :id => @movie.id, :movie => { :director => "New Director" }
       expect(response).to redirect_to(movie_path(@movie))
     end
@@ -110,6 +139,7 @@ describe MoviesController do
     it "redirects to /movies path" do
       id = "2"
       Movie.stub(:find).with(id).and_return(@movie)
+      @movie.stub(:destroy)
       delete :destroy, :id => id
       expect(response).to redirect_to(movies_path)
     end
