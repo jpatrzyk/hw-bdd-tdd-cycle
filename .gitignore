@@ -1,2 +1,4 @@
 rottenpotatoes/tmp/**
 rottenpotatoes/log/**
+rottenpotatoes/coverage/**
+rottenpotatoes/db/development.sqlite3
